@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Veritas — Multilingual XAI Compliance Console</title>
+<meta name="description" content="Inspect AI decisions with multilingual explanations, factor attributions, risk scores, compliance checks and printable audit reports.">
+<style>
+  :root {
+    --background: #f7f7f5;
+    --card: #ffffff;
+    --surface: #fbfbfa;
+    --foreground: #1c1c1a;
+    --muted-foreground: #6b6b66;
+    --border: #e4e3de;
+    --primary: #2f5d50;
+    --primary-foreground: #ffffff;
+    --success: #1e7e4d;
+    --success-bg: rgba(30,126,77,0.12);
+    --success-border: rgba(30,126,77,0.3);
+    --warning: #8a5a00;
+    --warning-bg: rgba(199,138,0,0.15);
+    --warning-border: rgba(199,138,0,0.4);
+    --destructive: #b3261e;
+    --destructive-bg: rgba(179,38,30,0.1);
+    --destructive-border: rgba(179,38,30,0.3);
+    --muted: #ececea;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--background);
+    color: var(--foreground);
+    min-height: 100vh;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+  }
+
+  .header-inner {
+    max-width: 1152px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 24px;
+  }
+
+  h1 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+  .subtitle { font-size: 13px; color: var(--muted-foreground); margin: 2px 0 0; }
+
+  .lang-group { display: flex; align-items: center; gap: 8px; }
+  .lang-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-foreground); }
+  .lang-toggle {
+    display: flex;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 2px;
+  }
+  .lang-toggle button {
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--muted-foreground);
+    transition: background-color .15s ease, color .15s ease;
+  }
+  .lang-toggle button:hover { color: var(--foreground); }
+  .lang-toggle button.active { background: var(--primary); color: var(--primary-foreground); }
+
+  .layout {
+    max-width: 1152px;
+    margin: 0 auto;
+    display: grid;
+    gap: 24px;
+    padding: 32px 24px;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 1024px) {
+    .layout { grid-template-columns: 320px 1fr; }
+  }
+
+  aside h2 {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted-foreground);
+    margin: 0 0 12px;
+  }
+
+  .decision-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .decision-btn {
+    width: 100%;
+    text-align: left;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.6);
+    padding: 12px;
+    cursor: pointer;
+    transition: border-color .15s ease;
+    font-family: inherit;
+  }
+  .decision-btn:hover { border-color: rgba(47,93,80,0.4); }
+  .decision-btn.active {
+    border-color: var(--primary);
+    background: var(--card);
+    box-shadow: 0 0 0 1px rgba(47,93,80,0.3);
+  }
+  .decision-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .decision-id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--muted-foreground); }
+  .decision-title { margin: 6px 0 0; font-size: 14px; font-weight: 500; }
+  .decision-meta { margin: 2px 0 0; font-size: 12px; color: var(--muted-foreground); }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid;
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .badge.success { background: var(--success-bg); color: var(--success); border-color: var(--success-border); }
+  .badge.warning { background: var(--warning-bg); color: var(--warning); border-color: var(--warning-border); }
+  .badge.destructive { background: var(--destructive-bg); color: var(--destructive); border-color: var(--destructive-border); }
+
+  .card {
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    padding: 24px;
+  }
+
+  section.detail { display: flex; flex-direction: column; gap: 24px; }
+
+  .detail-header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  .detail-header h2 { font-size: 18px; font-weight: 600; margin: 0; }
+  .detail-header .id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--muted-foreground); margin: 4px 0 0; }
+
+  .btn-primary {
+    border: none;
+    border-radius: 8px;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    padding: 9px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity .15s ease;
+    font-family: inherit;
+  }
+  .btn-primary:hover { opacity: 0.9; }
+
+  .stat-grid { margin-top: 20px; display: grid; gap: 16px; grid-template-columns: repeat(2, 1fr); }
+  @media (min-width: 640px) { .stat-grid { grid-template-columns: repeat(4, 1fr); } }
+  .stat dt { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-foreground); margin: 0; }
+  .stat dd { margin: 4px 0 0; }
+  .stat .big { font-size: 18px; font-weight: 600; }
+  .bar-track { margin-top: 4px; height: 6px; width: 100%; border-radius: 999px; background: var(--muted); overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 999px; background: var(--primary); }
+  .risk-low { color: var(--success); }
+  .risk-medium { color: var(--warning); }
+  .risk-high { color: var(--destructive); }
+  .stat .small-muted { font-size: 12px; color: var(--muted-foreground); margin-top: 4px; }
+
+  h3.section-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted-foreground);
+    margin: 0;
+  }
+
+  .factor-list { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 16px; }
+  .factor-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 14px; }
+  .factor-name { font-weight: 500; }
+  .factor-detail { font-size: 12px; color: var(--muted-foreground); }
+  .factor-bar-row { margin-top: 6px; display: flex; align-items: center; gap: 12px; }
+  .factor-track { position: relative; height: 8px; flex: 1; border-radius: 999px; background: var(--muted); overflow: hidden; }
+  .factor-mid { position: absolute; inset: 0 auto 0 50%; width: 1px; background: var(--border); }
+  .factor-fill { position: absolute; top: 0; bottom: 0; border-radius: 999px; }
+  .factor-fill.supports { background: var(--success); left: 50%; }
+  .factor-fill.opposes { background: var(--destructive); right: 50%; }
+  .factor-pct { width: 96px; text-align: right; font-size: 12px; font-weight: 500; }
+  .factor-pct.supports { color: var(--success); }
+  .factor-pct.opposes { color: var(--destructive); }
+
+  .explanation-text { margin: 12px 0 0; font-size: 14px; line-height: 1.7; }
+
+  .compliance-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+  .compliance-list { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .compliance-item {
+    display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px;
+    border-radius: 8px; border: 1px solid var(--border); background: var(--surface); padding: 12px;
+  }
+  .compliance-item .label { max-width: 34rem; }
+  .compliance-item .label p:first-child { margin: 0; font-size: 14px; font-weight: 500; }
+  .compliance-item .label p:last-child { margin: 4px 0 0; font-size: 12px; color: var(--muted-foreground); }
+
+  footer.print-only { display: none; }
+
+  @media print {
+    header .lang-group, aside, .btn-primary { display: none !important; }
+    .layout { grid-template-columns: 1fr; padding: 0; }
+    body { background: #fff; }
+    .card { break-inside: avoid; }
+  }
+
+  /* --- New: Analyze New Decision button + form (added without altering existing components) --- */
+  .btn-secondary {
+    width: 100%;
+    border: 1px dashed var(--primary);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--primary);
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-bottom: 12px;
+    font-family: inherit;
+    transition: background-color .15s ease;
+  }
+  .btn-secondary:hover { background: rgba(47,93,80,0.08); }
+
+  .proto-tag {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--primary);
+  }
+
+  .proto-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--warning-border);
+    background: var(--warning-bg);
+    color: var(--warning);
+    padding: 10px 12px;
+    font-size: 12px;
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+
+  .proto-note {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted-foreground);
+    font-style: italic;
+  }
+
+  .proto-factor-list { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .proto-factor-list li { border-radius: 8px; border: 1px solid var(--border); background: var(--surface); padding: 10px 12px; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(28,28,26,0.5);
+    z-index: 100;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 16px;
+    overflow-y: auto;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    width: 100%;
+    max-width: 640px;
+    background: var(--card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 24px;
+  }
+  .modal-box h2 { margin: 0 0 4px; font-size: 18px; font-weight: 600; }
+  .modal-box .modal-sub { margin: 0 0 20px; font-size: 13px; color: var(--muted-foreground); }
+  .form-grid { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; }
+  .form-grid .full { grid-column: 1 / -1; }
+  .field label { display: block; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted-foreground); margin-bottom: 5px; }
+  .field .hint { display: block; font-size: 11px; color: var(--muted-foreground); margin-top: 3px; font-weight: 400; text-transform: none; letter-spacing: normal; }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--foreground);
+    padding: 8px 10px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+  .field textarea { resize: vertical; min-height: 60px; }
+  .modal-actions { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
+  .btn-ghost {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--foreground);
+    padding: 9px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-ghost:hover { background: var(--muted); }
+
+  @media (max-width: 640px) {
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <h1>Veritas</h1>
+      <p class="subtitle" data-i18n="subtitle">Multilingual Explainable AI Compliance Console</p>
+    </div>
+    <div class="lang-group">
+      <span class="lang-label" data-i18n="language">Language</span>
+      <div class="lang-toggle" id="langToggle">
+        <button data-lang="en" class="active">English</button>
+        <button data-lang="hi">हिंदी</button>
+        <button data-lang="mr">मराठी</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside>
+    <h2 data-i18n="decisions">Decisions</h2>
+    <button class="btn-secondary" id="openAnalyzeBtn" data-i18n="analyzeNewDecision">Analyze New Decision</button>
+    <ul class="decision-list" id="decisionList"></ul>
+  </aside>
+
+  <section class="detail" id="detail"></section>
+</div>
+
+<div class="modal-overlay" id="analyzeModal">
+  <div class="modal-box">
+    <h2 data-i18n="analyzeNewDecision">Analyze New Decision</h2>
+    <p class="modal-sub" data-i18n="analyzeSub">Enter the details below. The analysis is generated only from what you provide here — nothing is invented.</p>
+    <form id="analyzeForm">
+      <div class="form-grid">
+        <div class="field">
+          <label data-i18n="fieldDecisionType">Decision type</label>
+          <input type="text" id="fldType" required placeholder="e.g. Consumer lending">
+        </div>
+        <div class="field">
+          <label data-i18n="fieldApplicant">Applicant / User name or ID</label>
+          <input type="text" id="fldApplicant" required placeholder="e.g. J. Rao or APP-10432">
+        </div>
+        <div class="field">
+          <label data-i18n="fieldModel">Model name</label>
+          <input type="text" id="fldModel" required placeholder="e.g. CreditNet v4.2.1">
+        </div>
+        <div class="field">
+          <label data-i18n="fieldOutcome">Decision outcome</label>
+          <select id="fldOutcome" required>
+            <option value="approved" data-i18n="approved">Approved</option>
+            <option value="rejected" data-i18n="rejected">Rejected</option>
+            <option value="flagged" data-i18n="flagged">Flagged</option>
+          </select>
+        </div>
+        <div class="field">
+          <label data-i18n="fieldConfidence">Confidence score (%)</label>
+          <input type="number" id="fldConfidence" min="0" max="100" required placeholder="0–100">
+        </div>
+        <div class="field">
+          <label data-i18n="fieldIncome">Income</label>
+          <input type="text" id="fldIncome" placeholder="e.g. 720000 per year">
+        </div>
+        <div class="field">
+          <label data-i18n="fieldCreditScore">Credit score</label>
+          <input type="text" id="fldCreditScore" placeholder="e.g. 742">
+        </div>
+        <div class="field">
+          <label data-i18n="fieldDti">Debt-to-income ratio</label>
+          <input type="text" id="fldDti" placeholder="e.g. 0.28">
+        </div>
+        <div class="field full">
+          <label data-i18n="fieldOtherFactors">Other relevant factors</label>
+          <textarea id="fldOtherFactors" placeholder="One per line, e.g.&#10;Employment length: 5 years&#10;Recent defaults: none"></textarea>
+          <span class="hint" data-i18n="fieldOtherFactorsHint">Optional. One factor per line.</span>
+        </div>
+        <div class="field full">
+          <label data-i18n="fieldContext">Additional context / reason (optional)</label>
+          <textarea id="fldContext" placeholder="Any extra notes to include in the explanation"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" id="cancelAnalyzeBtn" data-i18n="cancel">Cancel</button>
+        <button type="submit" class="btn-primary" data-i18n="analyzeDecisionSubmit">Analyze Decision</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const DECISIONS = [
+  {
+    id: "DEC-2026-0417",
+    domain: { en: "Consumer lending", hi: "उपभोक्ता ऋण", mr: "ग्राहक कर्ज" },
+    model: "CreditNet v4.2.1",
+    officer: "A. Deshmukh",
+    timestamp: "2026-08-06 09:14 IST",
+    outcome: "approved",
+    confidence: 92,
+    riskScore: 18,
+    riskLevel: "low",
+    factors: [
+      { name: { en: "Repayment history", hi: "पुनर्भुगतान इतिहास", mr: "परतफेड इतिहास" }, detail: { en: "48 months, no default", hi: "48 महीने, कोई चूक नहीं", mr: "48 महिने, थकबाकी नाही" }, pct: 42, dir: "supports" },
+      { name: { en: "Debt-to-income ratio", hi: "ऋण-से-आय अनुपात", mr: "कर्ज-ते-उत्पन्न प्रमाण" }, detail: { en: "0.24", hi: "0.24", mr: "0.24" }, pct: 26, dir: "supports" },
+      { name: { en: "Employment stability", hi: "रोज़गार स्थिरता", mr: "रोजगार स्थैर्य" }, detail: { en: "6 years, same employer", hi: "6 वर्ष, एक ही नियोक्ता", mr: "6 वर्षे, तोच नियोक्ता" }, pct: 19, dir: "supports" },
+      { name: { en: "Recent credit enquiries", hi: "हालिया क्रेडिट पूछताछ", mr: "अलीकडील क्रेडिट चौकशी" }, detail: { en: "3 in 90 days", hi: "90 दिनों में 3", mr: "90 दिवसांत 3" }, pct: 13, dir: "opposes" }
+    ],
+    explanation: {
+      en: "The model approved this application primarily because of a 48-month clean repayment history and a low debt-to-income ratio of 0.24. Stable employment reinforced the outcome, while three recent credit enquiries slightly reduced confidence without changing the decision.",
+      hi: "मॉडल ने इस आवेदन को मुख्य रूप से 48 महीने के स्वच्छ पुनर्भुगतान इतिहास और 0.24 के कम ऋण-से-आय अनुपात के कारण स्वीकृत किया। स्थिर रोज़गार ने परिणाम को मज़बूत किया, जबकि हाल की तीन क्रेडिट पूछताछों ने निर्णय बदले बिना विश्वास स्तर को थोड़ा कम किया।",
+      mr: "मॉडेलने या अर्जाला मुख्यतः 48 महिन्यांच्या स्वच्छ परतफेड इतिहासामुळे आणि 0.24 च्या कमी कर्ज-ते-उत्पन्न प्रमाणामुळे मंजुरी दिली. स्थिर रोजगारामुळे निर्णयाला बळकटी मिळाली, तर अलीकडील तीन क्रेडिट चौकशींमुळे निर्णय न बदलता विश्वास पातळी किंचित कमी झाली."
+    }
+  },
+  {
+    id: "DEC-2026-0418",
+    domain: { en: "Insurance claims", hi: "बीमा दावे", mr: "विमा दावे" },
+    model: "ClaimGuard v2.8.0",
+    officer: "R. Iyer",
+    timestamp: "2026-08-06 11:42 IST",
+    outcome: "review",
+    confidence: 61,
+    riskScore: 54,
+    riskLevel: "medium",
+    factors: [
+      { name: { en: "Claim amount vs. policy average", hi: "दावा राशि बनाम पॉलिसी औसत", mr: "दावा रक्कम विरुद्ध पॉलिसी सरासरी" }, detail: { en: "2.3x higher than average", hi: "औसत से 2.3 गुना अधिक", mr: "सरासरीपेक्षा 2.3 पट अधिक" }, pct: 31, dir: "opposes" },
+      { name: { en: "Documentation completeness", hi: "दस्तावेज़ीकरण पूर्णता", mr: "दस्तऐवजीकरण पूर्णता" }, detail: { en: "All required documents submitted", hi: "सभी आवश्यक दस्तावेज़ जमा", mr: "सर्व आवश्यक कागदपत्रे सादर" }, pct: 24, dir: "supports" },
+      { name: { en: "Prior claims frequency", hi: "पूर्व दावों की आवृत्ति", mr: "आधीच्या दाव्यांची वारंवारता" }, detail: { en: "2 claims in 18 months", hi: "18 महीनों में 2 दावे", mr: "18 महिन्यांत 2 दावे" }, pct: 22, dir: "opposes" },
+      { name: { en: "Incident report consistency", hi: "घटना रिपोर्ट संगति", mr: "घटना अहवाल सुसंगतता" }, detail: { en: "Minor timeline discrepancy flagged", hi: "मामूली समयरेखा विसंगति चिह्नित", mr: "किरकोळ कालरेषा विसंगती नोंदवली" }, pct: 17, dir: "opposes" }
+    ],
+    explanation: {
+      en: "The model flagged this claim for manual review because the requested amount is 2.3 times the policy average and a minor discrepancy was found between the incident report and supporting evidence timelines. Complete documentation and no other red flags kept the risk from being scored higher.",
+      hi: "मॉडल ने इस दावे को मैन्युअल समीक्षा के लिए चिह्नित किया क्योंकि अनुरोधित राशि पॉलिसी औसत से 2.3 गुना है और घटना रिपोर्ट व सहायक साक्ष्य की समयरेखा के बीच एक मामूली विसंगति पाई गई। पूर्ण दस्तावेज़ीकरण और कोई अन्य चेतावनी संकेत न होने के कारण जोखिम अधिक नहीं आंका गया।",
+      mr: "विनंती केलेली रक्कम पॉलिसी सरासरीच्या 2.3 पट असल्याने आणि घटना अहवाल व पुरावा कालरेषेत किरकोळ विसंगती आढळल्याने मॉडेलने हा दावा मॅन्युअल पुनरावलोकनासाठी चिन्हांकित केला. संपूर्ण कागदपत्रे आणि इतर कोणतेही धोक्याचे संकेत नसल्यामुळे जोखीम अधिक गुणांकित झाली नाही."
+    }
+  },
+  {
+    id: "DEC-2026-0419",
+    domain: { en: "Recruitment screening", hi: "भर्ती स्क्रीनिंग", mr: "भरती स्क्रीनिंग" },
+    model: "HireLens v1.9.4",
+    officer: "S. Kulkarni",
+    timestamp: "2026-08-06 14:07 IST",
+    outcome: "declined",
+    confidence: 78,
+    riskScore: 71,
+    riskLevel: "high",
+    factors: [
+      { name: { en: "Role-relevant experience", hi: "भूमिका-प्रासंगिक अनुभव", mr: "भूमिका-संबंधित अनुभव" }, detail: { en: "1.5 years vs. 4+ required", hi: "1.5 वर्ष बनाम 4+ आवश्यक", mr: "1.5 वर्षे विरुद्ध 4+ आवश्यक" }, pct: 38, dir: "opposes" },
+      { name: { en: "Assessment score", hi: "मूल्यांकन स्कोर", mr: "मूल्यांकन गुण" }, detail: { en: "62/100, below threshold", hi: "62/100, सीमा से नीचे", mr: "62/100, मर्यादेखाली" }, pct: 29, dir: "opposes" },
+      { name: { en: "Portfolio relevance", hi: "पोर्टफोलियो प्रासंगिकता", mr: "पोर्टफोलिओ प्रासंगिकता" }, detail: { en: "Adjacent domain projects", hi: "समीपस्थ क्षेत्र की परियोजनाएं", mr: "संलग्न क्षेत्रातील प्रकल्प" }, pct: 20, dir: "supports" },
+      { name: { en: "Communication assessment", hi: "संचार मूल्यांकन", mr: "संवाद मूल्यांकन" }, detail: { en: "Strong, above average", hi: "मजबूत, औसत से ऊपर", mr: "मजबूत, सरासरीपेक्षा जास्त" }, pct: 13, dir: "supports" }
+    ],
+    explanation: {
+      en: "The model declined this candidate mainly due to role-relevant experience falling well short of the 4-year requirement and an assessment score below the qualifying threshold. Relevant portfolio work and strong communication skills were noted but did not offset the experience and assessment gaps.",
+      hi: "मॉडल ने इस उम्मीदवार को मुख्य रूप से अस्वीकृत किया क्योंकि भूमिका-प्रासंगिक अनुभव 4 वर्ष की आवश्यकता से काफी कम था और मूल्यांकन स्कोर योग्यता सीमा से नीचे था। प्रासंगिक पोर्टफोलियो कार्य और मजबूत संचार कौशल को नोट किया गया, लेकिन इससे अनुभव और मूल्यांकन की कमी की भरपाई नहीं हुई।",
+      mr: "भूमिका-संबंधित अनुभव 4 वर्षांच्या आवश्यकतेपेक्षा खूपच कमी असल्याने आणि मूल्यांकन गुण पात्रता मर्यादेखाली असल्याने मॉडेलने या उमेदवाराला नाकारले. संबंधित पोर्टफोलिओ कार्य आणि मजबूत संवाद कौशल्ये नोंदवली गेली, पण त्यामुळे अनुभव आणि मूल्यांकनातील तफावत भरून निघाली नाही."
+    }
+  }
+];
+
+const COMPLIANCE_ITEMS = [
+  { title: { en: "Right to explanation", hi: "स्पष्टीकरण का अधिकार", mr: "स्पष्टीकरणाचा अधिकार" }, detail: { en: "A human-readable explanation was generated in the applicant's language.", hi: "आवेदक की भाषा में एक मानव-पठनीय स्पष्टीकरण तैयार किया गया।", mr: "अर्जदाराच्या भाषेत मानव-वाचनीय स्पष्टीकरण तयार करण्यात आले." }, status: "compliant" },
+  { title: { en: "Protected attribute usage", hi: "संरक्षित विशेषता उपयोग", mr: "संरक्षित गुणधर्म वापर" }, detail: { en: "No protected attributes were used as model inputs.", hi: "किसी भी संरक्षित विशेषता का उपयोग मॉडल इनपुट के रूप में नहीं किया गया।", mr: "कोणतेही संरक्षित गुणधर्म मॉडेल इनपुट म्हणून वापरले गेले नाहीत." }, status: "compliant" },
+  { title: { en: "Record retention", hi: "रिकॉर्ड प्रतिधारण", mr: "नोंद जतन" }, detail: { en: "Decision artefacts stored for the mandated 7-year period.", hi: "निर्णय दस्तावेज़ अनिवार्य 7-वर्ष की अवधि के लिए संग्रहीत किए गए।", mr: "निर्णय दस्तऐवज अनिवार्य 7-वर्ष कालावधीसाठी साठवले गेले." }, status: "compliant" }
+];
+
+const I18N = {
+  subtitle: { en: "Multilingual Explainable AI Compliance Console", hi: "बहुभाषी व्याख्येय AI अनुपालन कंसोल", mr: "बहुभाषिक स्पष्टीकरणीय AI अनुपालन कन्सोल" },
+  language: { en: "Language", hi: "भाषा", mr: "भाषा" },
+  decisions: { en: "Decisions", hi: "निर्णय", mr: "निर्णय" },
+  decisionAnalysis: { en: "Decision Analysis", hi: "निर्णय विश्लेषण", mr: "निर्णय विश्लेषण" },
+  generateReport: { en: "Generate audit report", hi: "ऑडिट रिपोर्ट बनाएं", mr: "ऑडिट अहवाल तयार करा" },
+  outcome: { en: "Outcome", hi: "परिणाम", mr: "निकाल" },
+  confidence: { en: "Confidence", hi: "विश्वास स्तर", mr: "विश्वास पातळी" },
+  riskLevel: { en: "Risk level", hi: "जोखिम स्तर", mr: "जोखीम पातळी" },
+  riskScore: { en: "Risk score", hi: "जोखिम स्कोर", mr: "जोखीम गुण" },
+  model: { en: "Model", hi: "मॉडल", mr: "मॉडेल" },
+  contributingFactors: { en: "Contributing factors", hi: "योगदान देने वाले कारक", mr: "योगदान देणारे घटक" },
+  supports: { en: "supports", hi: "समर्थन करता है", mr: "समर्थन करते" },
+  opposes: { en: "opposes", hi: "विरोध करता है", mr: "विरोध करते" },
+  explanation: { en: "Explanation", hi: "स्पष्टीकरण", mr: "स्पष्टीकरण" },
+  complianceStatus: { en: "Compliance status", hi: "अनुपालन स्थिति", mr: "अनुपालन स्थिती" },
+  compliant: { en: "Compliant", hi: "अनुपालित", mr: "अनुपालित" },
+  approved: { en: "Approved", hi: "स्वीकृत", mr: "मंजूर" },
+  review: { en: "Manual review", hi: "मैन्युअल समीक्षा", mr: "मॅन्युअल पुनरावलोकन" },
+  declined: { en: "Declined", hi: "अस्वीकृत", mr: "नाकारले" },
+  low: { en: "Low", hi: "कम", mr: "कमी" },
+  medium: { en: "Medium", hi: "मध्यम", mr: "मध्यम" },
+  high: { en: "High", hi: "उच्च", mr: "उच्च" },
+
+  rejected: { en: "Rejected", hi: "अस्वीकृत", mr: "नाकारले" },
+  flagged: { en: "Flagged", hi: "चिह्नित", mr: "चिन्हांकित" },
+
+  analyzeNewDecision: { en: "Analyze New Decision", hi: "नया निर्णय विश्लेषण करें", mr: "नवीन निर्णयाचे विश्लेषण करा" },
+  analyzeSub: {
+    en: "Enter the details below. The analysis is generated only from what you provide here — nothing is invented.",
+    hi: "नीचे विवरण दर्ज करें। विश्लेषण केवल यहां प्रदान की गई जानकारी से तैयार किया जाता है — कुछ भी गढ़ा नहीं जाता।",
+    mr: "खाली तपशील भरा. विश्लेषण फक्त तुम्ही इथे दिलेल्या माहितीवरून तयार केले जाते — काहीही बनवले जात नाही."
+  },
+  fieldDecisionType: { en: "Decision type", hi: "निर्णय प्रकार", mr: "निर्णय प्रकार" },
+  fieldApplicant: { en: "Applicant / User name or ID", hi: "आवेदक / उपयोगकर्ता नाम या आईडी", mr: "अर्जदार / वापरकर्ता नाव किंवा आयडी" },
+  fieldModel: { en: "Model name", hi: "मॉडल नाम", mr: "मॉडेल नाव" },
+  fieldOutcome: { en: "Decision outcome", hi: "निर्णय परिणाम", mr: "निर्णय निकाल" },
+  fieldConfidence: { en: "Confidence score (%)", hi: "विश्वास स्कोर (%)", mr: "विश्वास गुण (%)" },
+  fieldIncome: { en: "Income", hi: "आय", mr: "उत्पन्न" },
+  fieldCreditScore: { en: "Credit score", hi: "क्रेडिट स्कोर", mr: "क्रेडिट गुण" },
+  fieldDti: { en: "Debt-to-income ratio", hi: "ऋण-से-आय अनुपात", mr: "कर्ज-ते-उत्पन्न प्रमाण" },
+  fieldOtherFactors: { en: "Other relevant factors", hi: "अन्य प्रासंगिक कारक", mr: "इतर संबंधित घटक" },
+  fieldOtherFactorsHint: { en: "Optional. One factor per line.", hi: "वैकल्पिक। प्रति पंक्ति एक कारक।", mr: "पर्यायी. प्रत्येक ओळीत एक घटक." },
+  fieldContext: { en: "Additional context / reason (optional)", hi: "अतिरिक्त संदर्भ / कारण (वैकल्पिक)", mr: "अतिरिक्त संदर्भ / कारण (पर्यायी)" },
+  cancel: { en: "Cancel", hi: "रद्द करें", mr: "रद्द करा" },
+  analyzeDecisionSubmit: { en: "Analyze Decision", hi: "निर्णय का विश्लेषण करें", mr: "निर्णयाचे विश्लेषण करा" },
+
+  prototypeBanner: {
+    en: "Prototype analysis — no live model or API is connected. This decision and its explanation are generated only from the information you entered.",
+    hi: "प्रोटोटाइप विश्लेषण — कोई लाइव मॉडल या एपीआई कनेक्ट नहीं है। यह निर्णय और इसका स्पष्टीकरण केवल आपके द्वारा दर्ज की गई जानकारी से तैयार किया गया है।",
+    mr: "प्रोटोटाइप विश्लेषण — कोणतेही लाइव्ह मॉडेल किंवा एपीआय कनेक्ट केलेले नाही. हा निर्णय आणि त्याचे स्पष्टीकरण फक्त तुम्ही भरलेल्या माहितीवरून तयार केले आहे."
+  },
+  prototypeTag: { en: "Prototype", hi: "प्रोटोटाइप", mr: "प्रोटोटाइप" },
+  protoIntro: {
+    en: "This is a prototype analysis based only on the information provided by the user.",
+    hi: "यह उपयोगकर्ता द्वारा प्रदान की गई जानकारी पर आधारित एक प्रोटोटाइप विश्लेषण है।",
+    mr: "हे वापरकर्त्याने दिलेल्या माहितीवर आधारित प्रोटोटाइप विश्लेषण आहे."
+  },
+  protoApplicant: { en: "Applicant/User", hi: "आवेदक/उपयोगकर्ता", mr: "अर्जदार/वापरकर्ता" },
+  protoType: { en: "Decision type", hi: "निर्णय प्रकार", mr: "निर्णय प्रकार" },
+  protoConfidence: { en: "Stated confidence", hi: "बताया गया विश्वास स्तर", mr: "नमूद केलेली विश्वास पातळी" },
+  protoIncome: { en: "Income", hi: "आय", mr: "उत्पन्न" },
+  protoCreditScore: { en: "Credit score", hi: "क्रेडिट स्कोर", mr: "क्रेडिट गुण" },
+  protoDti: { en: "Debt-to-income ratio", hi: "ऋण-से-आय अनुपात", mr: "कर्ज-ते-उत्पन्न प्रमाण" },
+  protoOtherFactors: { en: "Other factors considered", hi: "विचार किए गए अन्य कारक", mr: "विचारात घेतलेले इतर घटक" },
+  protoContext: { en: "Additional context provided", hi: "प्रदान किया गया अतिरिक्त संदर्भ", mr: "दिलेला अतिरिक्त संदर्भ" },
+  protoNoContext: {
+    en: "No additional context was provided.",
+    hi: "कोई अतिरिक्त संदर्भ प्रदान नहीं किया गया।",
+    mr: "कोणताही अतिरिक्त संदर्भ दिलेला नाही."
+  },
+  protoNote: {
+    en: "Note: free-text fields above are shown exactly as entered and are not machine-translated.",
+    hi: "नोट: ऊपर दिए गए फ्री-टेक्स्ट फ़ील्ड बिल्कुल वैसे ही दिखाए गए हैं जैसे दर्ज किए गए थे और इनका मशीन अनुवाद नहीं किया गया है।",
+    mr: "टीप: वरील मुक्त-मजकूर क्षेत्रे जशीच्या तशी दाखवली आहेत आणि त्यांचे यांत्रिक भाषांतर केलेले नाही."
+  },
+  protoRiskNote: {
+    en: "Estimated from stated confidence — prototype heuristic, not a model output.",
+    hi: "बताए गए विश्वास स्तर से अनुमानित — यह एक प्रोटोटाइप अनुमान है, मॉडल का आउटपुट नहीं।",
+    mr: "नमूद केलेल्या विश्वास पातळीवरून अंदाजित — हे प्रोटोटाइप अनुमान आहे, मॉडेलचे आउटपुट नाही."
+  },
+  asEntered: { en: "As entered", hi: "जैसा दर्ज किया गया", mr: "जसे नोंदवले" }
+};
+
+let lang = "en";
+let activeId = DECISIONS[0].id;
+
+function t(key) { return I18N[key][lang]; }
+
+function outcomeMeta(outcome) {
+  if (outcome === "approved") return { label: t("approved"), cls: "success" };
+  if (outcome === "review") return { label: t("review"), cls: "warning" };
+  if (outcome === "flagged") return { label: t("flagged"), cls: "warning" };
+  if (outcome === "rejected") return { label: t("rejected"), cls: "destructive" };
+  return { label: t("declined"), cls: "destructive" };
+}
+
+function riskMeta(level) {
+  if (level === "low") return { label: t("low"), cls: "risk-low" };
+  if (level === "medium") return { label: t("medium"), cls: "risk-medium" };
+  return { label: t("high"), cls: "risk-high" };
+}
+
+function renderList() {
+  const list = document.getElementById("decisionList");
+  list.innerHTML = "";
+  DECISIONS.forEach(d => {
+    const li = document.createElement("li");
+    const om = outcomeMeta(d.outcome);
+    li.innerHTML = `
+      <button class="decision-btn ${d.id === activeId ? "active" : ""}" data-id="${d.id}">
+        <div class="decision-row">
+          <span class="decision-id">${d.id}</span>
+          <span class="badge ${om.cls}">${om.label}</span>
+        </div>
+        <p class="decision-title">${escapeHtml(d.domain[lang])}</p>
+        <p class="decision-meta">${escapeHtml(d.model)} · ${escapeHtml(d.officer)}</p>
+        ${d.isPrototype ? `<span class="proto-tag">${t("prototypeTag")}</span>` : ""}
+      </button>`;
+    list.appendChild(li);
+  });
+  list.querySelectorAll(".decision-btn").forEach(btn => {
+    btn.addEventListener("click", () => { activeId = btn.dataset.id; render(); });
+  });
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, ch => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[ch]));
+}
+
+// Builds the explanation paragraph for a user-entered (prototype) decision,
+// using only the field values the user actually supplied.
+function buildPrototypeExplanation(d) {
+  const parts = [t("protoIntro")];
+  parts.push(`${t("protoApplicant")}: ${escapeHtml(d.applicant)}.`);
+  parts.push(`${t("protoType")}: ${escapeHtml(d.domainRaw)}.`);
+  parts.push(`${t("model")}: ${escapeHtml(d.model)}.`);
+  parts.push(`${t("outcome")}: ${outcomeMeta(d.outcome).label}.`);
+  parts.push(`${t("protoConfidence")}: ${d.confidence}%.`);
+  if (d.income) parts.push(`${t("protoIncome")}: ${escapeHtml(d.income)}.`);
+  if (d.creditScore) parts.push(`${t("protoCreditScore")}: ${escapeHtml(d.creditScore)}.`);
+  if (d.dti) parts.push(`${t("protoDti")}: ${escapeHtml(d.dti)}.`);
+  if (d.otherFactorsRaw && d.otherFactorsRaw.length) {
+    parts.push(`${t("protoOtherFactors")}: ${escapeHtml(d.otherFactorsRaw.join("; "))}.`);
+  }
+  parts.push(d.context ? `${t("protoContext")}: ${escapeHtml(d.context)}` : t("protoNoContext"));
+  return parts.join(" ");
+}
+
+// Builds the "contributing factors" list for a prototype decision as a plain
+// label/value list (no invented weightings or support/oppose direction,
+// since none were provided).
+function buildPrototypeFactorsHtml(d) {
+  const rows = [];
+  if (d.income) rows.push([t("protoIncome"), d.income]);
+  if (d.creditScore) rows.push([t("protoCreditScore"), d.creditScore]);
+  if (d.dti) rows.push([t("protoDti"), d.dti]);
+  if (d.otherFactorsRaw && d.otherFactorsRaw.length) {
+    d.otherFactorsRaw.forEach(line => rows.push([t("asEntered"), line]));
+  }
+  if (!rows.length) {
+    return `<li><span class="factor-detail">${t("protoNoContext")}</span></li>`;
+  }
+  return rows.map(([label, value]) => `
+    <li>
+      <div class="factor-top">
+        <span class="factor-name">${escapeHtml(label)}</span>
+        <span class="factor-detail">${escapeHtml(value)}</span>
+      </div>
+    </li>`).join("");
+}
+
+function renderDetail() {
+  const d = DECISIONS.find(x => x.id === activeId);
+  const om = outcomeMeta(d.outcome);
+  const rm = riskMeta(d.riskLevel);
+  const detail = document.getElementById("detail");
+
+  const factorsHtml = d.isPrototype
+    ? buildPrototypeFactorsHtml(d)
+    : d.factors.map(f => {
+        const isSupport = f.dir === "supports";
+        return `
+          <li>
+            <div class="factor-top">
+              <span class="factor-name">${f.name[lang]}</span>
+              <span class="factor-detail">${f.detail[lang]}</span>
+            </div>
+            <div class="factor-bar-row">
+              <div class="factor-track">
+                <div class="factor-mid"></div>
+                <div class="factor-fill ${isSupport ? "supports" : "opposes"}" style="width:${f.pct * 0.6}%;"></div>
+              </div>
+              <span class="factor-pct ${isSupport ? "supports" : "opposes"}">${isSupport ? "+" : "-"}${f.pct}% ${isSupport ? t("supports") : t("opposes")}</span>
+            </div>
+          </li>`;
+      }).join("");
+
+  const explanationText = d.isPrototype ? buildPrototypeExplanation(d) : d.explanation[lang];
+
+  const complianceHtml = COMPLIANCE_ITEMS.map(c => `
+    <li class="compliance-item">
+      <div class="label">
+        <p>${c.title[lang]}</p>
+        <p>${c.detail[lang]}</p>
+      </div>
+      <span class="badge success">${t("compliant")}</span>
+    </li>`).join("");
+
+  const listClass = d.isPrototype ? "proto-factor-list" : "factor-list";
+
+  detail.innerHTML = `
+    ${d.isPrototype ? `<div class="proto-banner">${t("prototypeBanner")}</div>` : ""}
+    <div class="card">
+      <div class="detail-header">
+        <div>
+          <h2>${t("decisionAnalysis")}</h2>
+          <p class="id">${d.id}</p>
+        </div>
+        <button class="btn-primary" id="reportBtn">${t("generateReport")}</button>
+      </div>
+      <dl class="stat-grid">
+        <div class="stat">
+          <dt>${t("outcome")}</dt>
+          <dd><span class="badge ${om.cls}">${om.label}</span></dd>
+        </div>
+        <div class="stat">
+          <dt>${t("confidence")}</dt>
+          <dd class="big">${d.confidence}%</dd>
+          <div class="bar-track"><div class="bar-fill" style="width:${d.confidence}%;"></div></div>
+        </div>
+        <div class="stat">
+          <dt>${t("riskLevel")}</dt>
+          <dd class="big ${rm.cls}">${rm.label}</dd>
+          <p class="small-muted">${t("riskScore")}: ${d.riskScore}/100</p>
+          ${d.isPrototype ? `<p class="small-muted">${t("protoRiskNote")}</p>` : ""}
+        </div>
+        <div class="stat">
+          <dt>${t("model")}</dt>
+          <dd style="font-size:14px;font-weight:500;">${d.model}</dd>
+          <p class="small-muted">${d.timestamp}</p>
+        </div>
+      </dl>
+    </div>
+
+    <div class="card">
+      <h3 class="section-title">${t("contributingFactors")}</h3>
+      <ul class="${listClass}">${factorsHtml}</ul>
+    </div>
+
+    <div class="card">
+      <h3 class="section-title">${t("explanation")}</h3>
+      <p class="explanation-text">${explanationText}</p>
+      ${d.isPrototype ? `<p class="proto-note">${t("protoNote")}</p>` : ""}
+    </div>
+
+    <div class="card">
+      <div class="compliance-header">
+        <h3 class="section-title">${t("complianceStatus")}</h3>
+        <span class="badge success">${t("compliant")}</span>
+      </div>
+      <ul class="compliance-list">${complianceHtml}</ul>
+    </div>
+  `;
+
+  document.getElementById("reportBtn").addEventListener("click", () => window.print());
+}
+
+function render() {
+  document.querySelectorAll(".lang-toggle button").forEach(b => b.classList.toggle("active", b.dataset.lang === lang));
+  document.querySelectorAll("[data-i18n]").forEach(el => el.textContent = t(el.dataset.i18n));
+  renderList();
+  renderDetail();
+}
+
+document.getElementById("langToggle").addEventListener("click", e => {
+  const btn = e.target.closest("button[data-lang]");
+  if (!btn) return;
+  lang = btn.dataset.lang;
+  render();
+});
+
+// --- New: Analyze New Decision modal + submission handling ---
+
+let userDecisionCounter = 1;
+
+function riskFromConfidence(confidence) {
+  const score = Math.max(0, Math.min(100, Math.round(100 - confidence)));
+  const level = score <= 30 ? "low" : score <= 60 ? "medium" : "high";
+  return { score, level };
+}
+
+const analyzeModal = document.getElementById("analyzeModal");
+const analyzeForm = document.getElementById("analyzeForm");
+
+function openAnalyzeModal() {
+  analyzeModal.classList.add("open");
+}
+function closeAnalyzeModal() {
+  analyzeModal.classList.remove("open");
+  analyzeForm.reset();
+}
+
+document.getElementById("openAnalyzeBtn").addEventListener("click", openAnalyzeModal);
+document.getElementById("cancelAnalyzeBtn").addEventListener("click", closeAnalyzeModal);
+analyzeModal.addEventListener("click", e => { if (e.target === analyzeModal) closeAnalyzeModal(); });
+
+analyzeForm.addEventListener("submit", e => {
+  e.preventDefault();
+
+  const decisionType = document.getElementById("fldType").value.trim();
+  const applicant = document.getElementById("fldApplicant").value.trim();
+  const model = document.getElementById("fldModel").value.trim();
+  const outcome = document.getElementById("fldOutcome").value;
+  const confidence = Math.max(0, Math.min(100, Number(document.getElementById("fldConfidence").value)));
+  const income = document.getElementById("fldIncome").value.trim();
+  const creditScore = document.getElementById("fldCreditScore").value.trim();
+  const dti = document.getElementById("fldDti").value.trim();
+  const otherFactorsRaw = document.getElementById("fldOtherFactors").value
+    .split("\n").map(s => s.trim()).filter(Boolean);
+  const context = document.getElementById("fldContext").value.trim();
+
+  if (!decisionType || !applicant || !model || !outcome || Number.isNaN(confidence)) {
+    analyzeForm.reportValidity();
+    return;
+  }
+
+  const { score: riskScore, level: riskLevel } = riskFromConfidence(confidence);
+  const id = `DEC-USER-${String(userDecisionCounter).padStart(3, "0")}`;
+  userDecisionCounter += 1;
+
+  const newDecision = {
+    id,
+    domain: { en: decisionType, hi: decisionType, mr: decisionType },
+    domainRaw: decisionType,
+    model,
+    officer: applicant,
+    applicant,
+    timestamp: new Date().toLocaleString(),
+    outcome,
+    confidence,
+    riskScore,
+    riskLevel,
+    income,
+    creditScore,
+    dti,
+    otherFactorsRaw,
+    context,
+    isPrototype: true
+  };
+
+  DECISIONS.unshift(newDecision);
+  activeId = newDecision.id;
+  closeAnalyzeModal();
+  render();
+});
+
+render();
+</script>
+
+</body>
+</html>
