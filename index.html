@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreshShare — Rescue Food, Feed Community</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --forest: #1B4332;
+    --forest-deep: #0F2A1E;
+    --marigold: #E8A33D;
+    --sage-bg: #F1F5ED;
+    --paper: #FFFFFF;
+    --ink: #1C2019;
+    --ink-soft: #5B6459;
+    --line: #D8E0D1;
+    --danger: #B3492C;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Work Sans', sans-serif;
+    background:var(--sage-bg);
+    color:var(--ink);
+    line-height:1.55;
+  }
+  h1,h2,h3{ font-family:'Fraunces', serif; color:var(--forest-deep); }
+  a{ color:inherit; }
+  img{max-width:100%;}
+
+  .wrap{ max-width:1100px; margin:0 auto; padding:0 24px; }
+
+  /* NAV */
+  nav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(241,245,237,0.9);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  nav .wrap{ display:flex; align-items:center; justify-content:space-between; height:68px; }
+  .brand{ display:flex; align-items:center; gap:10px; font-family:'Fraunces', serif; font-weight:700; font-size:1.3rem; color:var(--forest-deep);}
+  .brand span.dot{ width:10px; height:10px; border-radius:50%; background:var(--marigold); display:inline-block;}
+  nav .links{ display:flex; gap:28px; font-weight:500; font-size:0.95rem; }
+  nav .links a{ text-decoration:none; color:var(--ink-soft); transition:color .2s;}
+  nav .links a:hover{ color:var(--forest); }
+  @media (max-width:720px){ nav .links{ display:none; } }
+
+  /* HERO */
+  .hero{ padding:80px 0 60px; position:relative; overflow:hidden;}
+  .hero .wrap{ display:grid; grid-template-columns:1.1fr 0.9fr; gap:48px; align-items:center;}
+  @media (max-width:860px){ .hero .wrap{ grid-template-columns:1fr; } }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--forest); color:#fff; font-size:0.78rem; font-weight:600;
+    letter-spacing:0.06em; text-transform:uppercase;
+    padding:7px 14px; border-radius:99px; margin-bottom:22px;
+  }
+  .hero h1{ font-size:clamp(2.4rem, 5vw, 3.6rem); font-weight:700; line-height:1.08; letter-spacing:-0.01em;}
+  .hero h1 em{ font-style:italic; color:var(--marigold); }
+  .hero p.lead{ margin-top:20px; font-size:1.15rem; color:var(--ink-soft); max-width:46ch;}
+  .cta-row{ display:flex; gap:14px; margin-top:32px; flex-wrap:wrap;}
+  .btn{
+    padding:14px 26px; border-radius:10px; border:none; font-family:inherit;
+    font-weight:600; font-size:0.98rem; cursor:pointer; text-decoration:none;
+    display:inline-flex; align-items:center; gap:8px; transition:transform .15s, box-shadow .15s;
+  }
+  .btn:hover{ transform:translateY(-2px); }
+  .btn-primary{ background:var(--forest); color:#fff; box-shadow:0 6px 20px rgba(27,67,50,0.25);}
+  .btn-ghost{ background:transparent; color:var(--forest-deep); border:1.5px solid var(--forest); }
+
+  /* SIGNATURE: rescue gauge */
+  .gauge-card{
+    background:var(--forest-deep); color:#fff; border-radius:20px; padding:36px;
+    position:relative; overflow:hidden;
+  }
+  .gauge-card::before{
+    content:""; position:absolute; inset:0;
+    background:radial-gradient(circle at 80% 0%, rgba(232,163,61,0.25), transparent 60%);
+  }
+  .gauge-label{ font-size:0.8rem; text-transform:uppercase; letter-spacing:0.08em; color:#B7C9BB;}
+  .gauge-number{ font-family:'Fraunces', serif; font-size:3.4rem; font-weight:700; margin:6px 0; color:var(--marigold);}
+  .gauge-sub{ font-size:0.92rem; color:#CFDACB; }
+  .gauge-bar{ height:10px; background:rgba(255,255,255,0.12); border-radius:99px; margin-top:22px; overflow:hidden;}
+  .gauge-fill{ height:100%; background:linear-gradient(90deg, var(--marigold), #F4C579); border-radius:99px; width:0%; transition:width 1s ease;}
+  .gauge-stats{ display:flex; justify-content:space-between; margin-top:20px; font-size:0.85rem; color:#B7C9BB;}
+
+  /* SECTIONS */
+  section{ padding:70px 0; }
+  .section-head{ max-width:640px; margin-bottom:44px; }
+  .eyebrow-line{ font-size:0.8rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--marigold); margin-bottom:10px;}
+  .section-head h2{ font-size:clamp(1.8rem, 3vw, 2.4rem); }
+  .section-head p{ color:var(--ink-soft); margin-top:12px; font-size:1.05rem;}
+
+  /* HOW IT WORKS */
+  .steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+  @media (max-width:800px){ .steps{ grid-template-columns:1fr; } }
+  .step{ background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); padding:28px; }
+  .step .num{ font-family:'Fraunces', serif; font-size:1.6rem; color:var(--marigold); font-weight:700;}
+  .step h3{ font-size:1.15rem; margin:10px 0 8px; }
+  .step p{ color:var(--ink-soft); font-size:0.95rem;}
+
+  /* BOARD */
+  #board{ background:var(--paper); border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+  .board-layout{ display:grid; grid-template-columns:1fr 1.4fr; gap:40px; align-items:start; }
+  @media (max-width:900px){ .board-layout{ grid-template-columns:1fr; } }
+  .form-card{ background:var(--sage-bg); border-radius:var(--radius); padding:26px; border:1px solid var(--line);}
+  .form-card h3{ margin-bottom:16px; font-size:1.2rem;}
+  label{ display:block; font-size:0.85rem; font-weight:600; margin:14px 0 6px; color:var(--forest-deep);}
+  input, select, textarea{
+    width:100%; padding:11px 13px; border-radius:8px; border:1.5px solid var(--line);
+    font-family:inherit; font-size:0.95rem; background:#fff;
+  }
+  input:focus, select:focus, textarea:focus{ outline:2px solid var(--forest); outline-offset:1px; border-color:var(--forest);}
+  textarea{ resize:vertical; min-height:70px;}
+  .form-card .btn{ margin-top:18px; width:100%; justify-content:center;}
+
+  .listings{ display:flex; flex-direction:column; gap:14px; max-height:560px; overflow-y:auto; padding-right:4px;}
+  .listing{
+    background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 20px;
+    display:flex; justify-content:space-between; gap:16px; align-items:flex-start;
+  }
+  .listing.claimed{ opacity:0.55; }
+  .listing-info h4{ font-size:1.02rem; font-family:'Fraunces', serif; color:var(--forest-deep);}
+  .listing-meta{ font-size:0.82rem; color:var(--ink-soft); margin-top:4px; display:flex; gap:10px; flex-wrap:wrap;}
+  .tag{ background:var(--sage-bg); padding:2px 9px; border-radius:99px; font-size:0.75rem; font-weight:600; color:var(--forest);}
+  .claim-btn{ background:var(--marigold); color:var(--forest-deep); border:none; padding:9px 16px; border-radius:8px; font-weight:600; font-size:0.85rem; cursor:pointer; white-space:nowrap;}
+  .claim-btn:disabled{ background:#DDE3D6; color:#8B9585; cursor:default;}
+  .empty-state{ text-align:center; color:var(--ink-soft); padding:40px 20px; font-size:0.95rem; }
+
+  /* RECIPE AI */
+  #recipes .section-head{ margin-left:auto; margin-right:auto; text-align:center; }
+  .chip-picker{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:36px;}
+  .chip{
+    padding:9px 16px; border-radius:99px; border:1.5px solid var(--line); background:#fff;
+    font-size:0.88rem; font-weight:500; cursor:pointer; transition:all .15s; user-select:none;
+  }
+  .chip.active{ background:var(--forest); color:#fff; border-color:var(--forest);}
+  .recipe-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(240px,1fr)); gap:20px;}
+  .recipe-card{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:22px; position:relative;}
+  .recipe-card .match{ position:absolute; top:18px; right:18px; background:var(--marigold); color:var(--forest-deep); font-weight:700; font-size:0.78rem; padding:4px 10px; border-radius:99px;}
+  .recipe-card .emoji{ font-size:2rem; }
+  .recipe-card h4{ margin:10px 0 6px; font-family:'Fraunces', serif; font-size:1.1rem;}
+  .recipe-card p{ font-size:0.87rem; color:var(--ink-soft);}
+  .recipe-hint{ text-align:center; color:var(--ink-soft); font-size:0.9rem; margin-bottom:24px;}
+
+  /* IMPACT */
+  #impact{ text-align:center;}
+  .impact-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:36px;}
+  @media (max-width:700px){ .impact-grid{ grid-template-columns:1fr; } }
+  .impact-item{ background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); padding:30px;}
+  .impact-item .big{ font-family:'Fraunces', serif; font-size:2.2rem; color:var(--forest); font-weight:700;}
+  .impact-item .lbl{ color:var(--ink-soft); font-size:0.9rem; margin-top:6px;}
+
+  footer{ background:var(--forest-deep); color:#CFDACB; padding:40px 0; text-align:center; font-size:0.88rem;}
+  footer strong{ color:#fff; }
+
+  /* CHATBOT */
+  #chat-toggle{
+    position:fixed; bottom:24px; right:24px; z-index:100;
+    width:60px; height:60px; border-radius:50%; background:var(--forest);
+    color:#fff; border:none; font-size:1.5rem; cursor:pointer;
+    box-shadow:0 8px 24px rgba(15,42,30,0.35); display:flex; align-items:center; justify-content:center;
+  }
+  #chat-window{
+    position:fixed; bottom:96px; right:24px; z-index:100; width:320px; max-width:88vw;
+    background:#fff; border-radius:16px; box-shadow:0 20px 50px rgba(0,0,0,0.2);
+    display:none; flex-direction:column; overflow:hidden; border:1px solid var(--line);
+  }
+  #chat-window.open{ display:flex; }
+  .chat-head{ background:var(--forest); color:#fff; padding:16px 18px;}
+  .chat-head .t1{ font-weight:700; font-family:'Fraunces', serif;}
+  .chat-head .t2{ font-size:0.78rem; color:#CFDACB;}
+  .chat-body{ padding:14px; height:280px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; background:var(--sage-bg);}
+  .msg{ padding:9px 13px; border-radius:12px; font-size:0.88rem; max-width:82%; line-height:1.4;}
+  .msg.bot{ background:#fff; border:1px solid var(--line); align-self:flex-start; border-bottom-left-radius:2px;}
+  .msg.user{ background:var(--forest); color:#fff; align-self:flex-end; border-bottom-right-radius:2px;}
+  .chat-input{ display:flex; border-top:1px solid var(--line); }
+  .chat-input input{ border:none; border-radius:0; flex:1; padding:12px 14px;}
+  .chat-input input:focus{ outline:none; }
+  .chat-input button{ background:var(--marigold); border:none; padding:0 18px; font-weight:700; cursor:pointer; color:var(--forest-deep);}
+  .quick-qs{ display:flex; flex-wrap:wrap; gap:6px; padding:0 14px 12px; background:var(--sage-bg);}
+  .qq{ font-size:0.72rem; background:#fff; border:1px solid var(--line); padding:5px 9px; border-radius:99px; cursor:pointer;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand"><span class="dot"></span>FreshShare</div>
+    <div class="links">
+      <a href="#how">How it works</a>
+      <a href="#board">Food board</a>
+      <a href="#recipes">Recipe rescue</a>
+      <a href="#impact">Impact</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">🌍 Girls In STEM Global Hackathon</div>
+      <h1>Every plate saved is a <em>community fed</em>.</h1>
+      <p class="lead">FreshShare connects surplus food from homes, bakeries, and cafeterias with neighbors who need it — and uses an ingredient-matching engine to help you cook what you already have before it goes to waste.</p>
+      <div class="cta-row">
+        <a href="#board" class="btn btn-primary">List surplus food →</a>
+        <a href="#recipes" class="btn btn-ghost">Try the recipe AI</a>
+      </div>
+    </div>
+    <div class="gauge-card">
+      <div class="gauge-label">Community Rescue Meter</div>
+      <div class="gauge-number" id="gaugeNumber">0 lbs</div>
+      <div class="gauge-sub">of food rescued from landfills this month</div>
+      <div class="gauge-bar"><div class="gauge-fill" id="gaugeFill"></div></div>
+      <div class="gauge-stats">
+        <span id="statListings">0 listings posted</span>
+        <span id="statClaimed">0 claimed</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow-line">Get involved</div>
+      <h2>Three steps to rescue food</h2>
+      <p>No app download, no cost, no complicated signup — just a shared board for your community.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="num">01</div>
+        <h3>Post what's spare</h3>
+        <p>Restaurants, students, and households list extra food that would otherwise be thrown out.</p>
+      </div>
+      <div class="step">
+        <div class="num">02</div>
+        <h3>Neighbors claim it</h3>
+        <p>Anyone nearby can claim a listing before it expires, first come first served.</p>
+      </div>
+      <div class="step">
+        <div class="num">03</div>
+        <h3>Cook what you have</h3>
+        <p>Use the Recipe Rescue tool to turn your own leftover ingredients into a full meal.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="board">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow-line">Food board</div>
+      <h2>Share it before it spoils</h2>
+      <p>Post surplus food for your community, or claim something nearby.</p>
+    </div>
+    <div class="board-layout">
+      <div class="form-card">
+        <h3>List surplus food</h3>
+        <form id="listingForm">
+          <label for="foodName">What are you sharing?</label>
+          <input type="text" id="foodName" placeholder="e.g. 12 loaves of sourdough bread" required>
+
+          <label for="foodQty">Estimated weight (lbs)</label>
+          <input type="number" id="foodQty" min="1" placeholder="e.g. 5" required>
+
+          <label for="foodLoc">Pickup location / area</label>
+          <input type="text" id="foodLoc" placeholder="e.g. Downtown Community Center" required>
+
+          <label for="foodCat">Category</label>
+          <select id="foodCat">
+            <option>Baked goods</option>
+            <option>Produce</option>
+            <option>Prepared meals</option>
+            <option>Pantry items</option>
+            <option>Dairy</option>
+          </select>
+
+          <button type="submit" class="btn btn-primary">Post listing</button>
+        </form>
+      </div>
+
+      <div>
+        <div class="listings" id="listingsContainer"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="recipes">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow-line">Recipe Rescue · AI matching</div>
+      <h2>Tell us what's in your kitchen</h2>
+      <p>Our matching algorithm scores every recipe by how much of it you can already make — so nothing spare goes to waste.</p>
+    </div>
+    <p class="recipe-hint">Tap the ingredients you have on hand:</p>
+    <div class="chip-picker" id="chipPicker"></div>
+    <div class="recipe-grid" id="recipeGrid"></div>
+  </div>
+</section>
+
+<section id="impact">
+  <div class="wrap">
+    <div class="section-head" style="margin-left:auto;margin-right:auto;text-align:center;">
+      <div class="eyebrow-line">Why it matters</div>
+      <h2>Small actions, real numbers</h2>
+    </div>
+    <div class="impact-grid">
+      <div class="impact-item">
+        <div class="big">1/3</div>
+        <div class="lbl">of all food produced globally is wasted before it's eaten</div>
+      </div>
+      <div class="impact-item">
+        <div class="big">8–10%</div>
+        <div class="lbl">of global greenhouse emissions come from food waste</div>
+      </div>
+      <div class="impact-item">
+        <div class="big">1 board</div>
+        <div class="lbl">can redirect a neighborhood's surplus to the people who need it</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p><strong>FreshShare</strong> — built for the Girls In STEM Global Hackathon 2026.</p>
+    <p style="margin-top:6px;">Think globally. Solve locally. 🌱</p>
+  </div>
+</footer>
+
+<button id="chat-toggle" aria-label="Open assistant">💬</button>
+<div id="chat-window">
+  <div class="chat-head">
+    <div class="t1">FreshShare Assistant</div>
+    <div class="t2">Ask about food waste & how the board works</div>
+  </div>
+  <div class="chat-body" id="chatBody"></div>
+  <div class="quick-qs">
+    <div class="qq" data-q="How does claiming work?">Claiming?</div>
+    <div class="qq" data-q="How is the recipe match calculated?">Recipe match?</div>
+    <div class="qq" data-q="Give me a food waste tip">Waste tip</div>
+  </div>
+  <div class="chat-input">
+    <input type="text" id="chatInput" placeholder="Type a question...">
+    <button id="chatSend">Send</button>
+  </div>
+</div>
+
+<script>
+/* ---------- FOOD BOARD ---------- */
+const STORAGE_KEY = 'freshshare_listings';
+
+function loadListings(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || seedListings(); }
+  catch(e){ return seedListings(); }
+}
+function seedListings(){
+  const seed = [
+    {id: cryptoId(), name:'Fresh vegetable crates (unsold)', qty:14, loc:'Green Valley Farmers Market', cat:'Produce', claimed:false},
+    {id: cryptoId(), name:'Day-old bread & pastries', qty:8, loc:'Corner Bakery, Elm St', cat:'Baked goods', claimed:false},
+    {id: cryptoId(), name:'Extra catering meals from event', qty:20, loc:'Community Hall', cat:'Prepared meals', claimed:true},
+  ];
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(seed));
+  return seed;
+}
+function saveListings(list){ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
+function cryptoId(){ return Math.random().toString(36).slice(2,9); }
+
+let listings = loadListings();
+
+function renderListings(){
+  const el = document.getElementById('listingsContainer');
+  if(listings.length === 0){
+    el.innerHTML = '<div class="empty-state">No listings yet — be the first to share surplus food.</div>';
+  } else {
+    el.innerHTML = listings.slice().reverse().map(item => `
+      <div class="listing ${item.claimed ? 'claimed' : ''}">
+        <div class="listing-info">
+          <h4>${escapeHtml(item.name)}</h4>
+          <div class="listing-meta">
+            <span class="tag">${escapeHtml(item.cat)}</span>
+            <span>${item.qty} lbs</span>
+            <span>📍 ${escapeHtml(item.loc)}</span>
+          </div>
+        </div>
+        <button class="claim-btn" ${item.claimed ? 'disabled' : ''} onclick="claimListing('${item.id}')">
+          ${item.claimed ? 'Claimed' : 'Claim'}
+        </button>
+      </div>
+    `).join('');
+  }
+  updateGauge();
+}
+
+function claimListing(id){
+  listings = listings.map(l => l.id === id ? {...l, claimed:true} : l);
+  saveListings(listings);
+  renderListings();
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+document.getElementById('listingForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const name = document.getElementById('foodName').value.trim();
+  const qty = parseInt(document.getElementById('foodQty').value, 10);
+  const loc = document.getElementById('foodLoc').value.trim();
+  const cat = document.getElementById('foodCat').value;
+  if(!name || !qty || !loc) return;
+  listings.push({id: cryptoId(), name, qty, loc, cat, claimed:false});
+  saveListings(listings);
+  renderListings();
+  this.reset();
+});
+
+function updateGauge(){
+  const claimed = listings.filter(l => l.claimed);
+  const totalRescued = claimed.reduce((sum,l) => sum + Number(l.qty), 0);
+  const goal = 200;
+  const pct = Math.min(100, Math.round((totalRescued/goal)*100));
+  document.getElementById('gaugeNumber').textContent = totalRescued + ' lbs';
+  document.getElementById('gaugeFill').style.width = pct + '%';
+  document.getElementById('statListings').textContent = listings.length + ' listings posted';
+  document.getElementById('statClaimed').textContent = claimed.length + ' claimed';
+}
+
+/* ---------- RECIPE RESCUE AI (content-based ingredient matching) ---------- */
+const ALL_INGREDIENTS = ['Rice','Eggs','Bread','Tomato','Onion','Beans','Cheese','Spinach','Potato','Chicken','Pasta','Milk'];
+
+const RECIPES = [
+  {name:'Veggie Fried Rice', emoji:'🍚', ingredients:['Rice','Eggs','Onion','Spinach'], desc:'A quick stir-fry that uses up leftover rice and any spare vegetables.'},
+  {name:'Tomato Onion Pasta', emoji:'🍝', ingredients:['Pasta','Tomato','Onion','Cheese'], desc:'A pantry-staple sauce built from what most kitchens already have.'},
+  {name:'Bread & Egg Bake', emoji:'🍞', ingredients:['Bread','Eggs','Milk','Cheese'], desc:'Turns stale bread into a savory baked casserole.'},
+  {name:'Loaded Potato Skillet', emoji:'🥔', ingredients:['Potato','Onion','Cheese','Beans'], desc:'A hearty one-pan meal that stretches a small amount of produce.'},
+  {name:'Spinach Chicken Wrap', emoji:'🌯', ingredients:['Chicken','Spinach','Bread','Onion'], desc:'Simple protein-forward wrap for using up greens before they wilt.'},
+  {name:'Bean & Tomato Stew', emoji:'🍲', ingredients:['Beans','Tomato','Onion','Potato'], desc:'A budget-friendly stew that keeps well and uses shelf-stable staples.'},
+];
+
+let selectedIngredients = new Set();
+
+function renderChips(){
+  const el = document.getElementById('chipPicker');
+  el.innerHTML = ALL_INGREDIENTS.map(ing => `<div class="chip" data-ing="${ing}">${ing}</div>`).join('');
+  el.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const ing = chip.dataset.ing;
+      if(selectedIngredients.has(ing)){ selectedIngredients.delete(ing); chip.classList.remove('active'); }
+      else { selectedIngredients.add(ing); chip.classList.add('active'); }
+      renderRecipes();
+    });
+  });
+}
+
+/* Matching score: overlap between user's ingredients and recipe's required ingredients */
+function matchScore(recipe){
+  if(selectedIngredients.size === 0) return 0;
+  const overlap = recipe.ingredients.filter(i => selectedIngredients.has(i)).length;
+  return overlap / recipe.ingredients.length;
+}
+
+function renderRecipes(){
+  const el = document.getElementById('recipeGrid');
+  const scored = RECIPES.map(r => ({...r, score: matchScore(r)}))
+                        .sort((a,b) => b.score - a.score);
+  el.innerHTML = scored.map(r => `
+    <div class="recipe-card">
+      <div class="match">${Math.round(r.score*100)}% match</div>
+      <div class="emoji">${r.emoji}</div>
+      <h4>${r.name}</h4>
+      <p>${r.desc}</p>
+    </div>
+  `).join('');
+}
+
+/* ---------- CHATBOT (keyword-matched assistant) ---------- */
+const QA = [
+  {keys:['claim','claiming'], a:"Tap 'Claim' on any listing in the Food Board — it marks that food as taken so no one else shows up for it."},
+  {keys:['match','recipe','score','algorithm'], a:"Each recipe's match % is your selected ingredients ÷ that recipe's total ingredients — the more overlap, the higher it ranks."},
+  {keys:['tip','waste','reduce'], a:"Quick tip: store bread in the fridge if you won't eat it in 2 days, and freeze extra portions before they spoil."},
+  {keys:['post','list','share'], a:"Use the form under 'List surplus food' — add a name, weight, and pickup location, then submit."},
+  {keys:['who','team'], a:"FreshShare was built for the Girls In STEM Global Hackathon to tackle food waste and food access together."},
+];
+
+function botReply(text){
+  const lower = text.toLowerCase();
+  const hit = QA.find(qa => qa.keys.some(k => lower.includes(k)));
+  return hit ? hit.a : "I'm a simple keyword assistant — try asking about 'claiming', 'recipe match', or 'waste tips'.";
+}
+
+function addMsg(text, who){
+  const body = document.getElementById('chatBody');
+  const div = document.createElement('div');
+  div.className = 'msg ' + who;
+  div.textContent = text;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+}
+
+document.getElementById('chat-toggle').addEventListener('click', () => {
+  const win = document.getElementById('chat-window');
+  win.classList.toggle('open');
+  if(win.classList.contains('open') && document.getElementById('chatBody').children.length === 0){
+    addMsg("Hi! I'm the FreshShare assistant. Ask me about claiming food, the recipe match score, or waste-reduction tips.", 'bot');
+  }
+});
+
+document.getElementById('chatSend').addEventListener('click', sendChat);
+document.getElementById('chatInput').addEventListener('keydown', e => { if(e.key === 'Enter') sendChat(); });
+document.querySelectorAll('.qq').forEach(q => q.addEventListener('click', () => {
+  addMsg(q.dataset.q, 'user');
+  setTimeout(() => addMsg(botReply(q.dataset.q), 'bot'), 300);
+}));
+
+function sendChat(){
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if(!text) return;
+  addMsg(text, 'user');
+  input.value = '';
+  setTimeout(() => addMsg(botReply(text), 'bot'), 300);
+}
+
+/* ---------- INIT ---------- */
+renderListings();
+renderChips();
+renderRecipes();
+</script>
+
+</body>
+</html>
